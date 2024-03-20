@@ -175,7 +175,8 @@ class classicEnv(AccelEnv):
                 self.step_counter <= shock_times[self.shock_counter][1]:
                 print(f"Step = {self.step_counter}, Shock params: {self.sm[0][self.shock_counter], self.sm[1][self.shock_counter], self.sm[2]} applied to vehicle {self.single_shock_id}\n")
                 
-                controller.set_shock_accel(self.sm[0][self.shock_counter])
+                # For Imitation Learning, provide the environment as well. Whatever acceleration value is provided is ignored.
+                controller.set_shock_accel(self.sm[0][self.shock_counter], self) 
                 controller.set_shock_time(True)
 
                 # change color to magenta

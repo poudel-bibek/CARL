@@ -100,6 +100,217 @@ class ModifiedIDMController(BaseController):
         #print("IDM")
         return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
 
+class ImitationLearningController(BaseController):
+    """
+
+    Model 1: Apply imitation learning at all times
+    Model 2: Apply imititation learning when asked for perturbations. Use model 2 now.
+
+    Since car following accelerations dont contain scenerios:
+        1. Where the vehicle has to start from stop.
+        2. When there is no other vehicles in front. (In the ring at least there is always a leader)
+        3. The 800 param model when run on ~300 vehicles peak in the Bottleneck will be a problem.
+
+    Add stochasticity to the imitation actions?
+    It is not able to produce extreme accelerations. 
+
+    """
+    def __init__(self,
+                 veh_id,
+                 v0=30,
+                 T=1,
+                 a=1,
+                 b=1.5,
+                 delta=4,
+                 s0=2,
+                 time_delay=0.0,
+                 noise=0,
+                 fail_safe=None,
+                 display_warnings=True,
+                 car_following_params=None,
+                 
+                 # By default, the shock_vehicle is set to False. When is it turned ON?
+                 shock_vehicle = False,
+                 ):
+
+        
+        BaseController.__init__(
+            self,
+            veh_id,
+            car_following_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise,
+            display_warnings=display_warnings,
+        )
+
+        self.v0 = v0
+        self.T = T
+        self.a = a
+        self.b = b
+        self.delta = delta
+        self.s0 = s0
+
+        self.shock_vehicle = shock_vehicle
+        self.shock_acceleration = 0.0 # Default
+        self.shock_time = False # Per time step decision on whether to shock or not
+        self.imitation_model = self.load_imitation_model()
+        
+    def load_imitation_model(self, ):
+        """
+        Load the Imitation Learning Model
+        """
+
+        # 800 parameter model
+        class NeuralNet(nn.Module):
+            def __init__(self, dropout_rate=0.15): # dropour probability 15%
+                super(NeuralNet, self).__init__() 
+                self.fc1 = nn.Linear(3, 32)
+                self.relu = nn.ReLU()
+                # Adding dropout after the first ReLU
+                self.dropout1 = nn.Dropout(dropout_rate)
+                self.fc2 = nn.Linear(32, 16)
+                # Adding dropout after the second ReLU
+                self.dropout2 = nn.Dropout(dropout_rate)
+                
+                self.fc3 = nn.Linear(16, 8)
+                self.fc4 = nn.Linear(8, 1)
+
+            def forward(self, x):
+                out = self.fc1(x)
+                out = self.relu(out)
+                # out = self.dropout1(out) # Dropouts turned OFF at eval
+                
+                out = self.fc2(out)
+                out = self.relu(out)
+                # out = self.dropout2(out) # Dropouts turned OFF at eval
+                
+                out = self.fc3(out) 
+                out = self.relu(out)
+                out = self.fc4(out) # Last layer, no activation
+                return out
+        
+        url = "https://huggingface.co/matrix-multiply/Imitation_EnduRL/resolve/main/imitation_best_model.pth?download=true"
+        saved_best_net = NeuralNet()
+        state_dict = torch.hub.load_state_dict_from_url(url)
+        saved_best_net.load_state_dict(state_dict)
+        saved_best_net.eval()
+        return saved_best_net
+                
+    def get_idm_accel(self, env):
+        """
+        it will automatically call this for each vehicle
+        At shock times, we have to return the shock acceleration
+        """
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
+
+        # in order to deal with ZeroDivisionError
+        if abs(h) < 1e-3:
+            h = 1e-3
+
+        if lead_id is None or lead_id == '':  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.k.vehicle.get_speed(lead_id)
+            s_star = self.s0 + max(
+                0, v * self.T + v * (v - lead_vel) /
+                (2 * np.sqrt(self.a * self.b)))
+
+        #print("IDM")
+        return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
+        
+    def get_shock_accel(self, ):
+        """
+        This is not even used.
+        To make this controller compatible with rest of the system (where shock was sampled earlier) 
+        """
+        return self.shock_acceleration
+
+    def set_shock_accel(self, accel, env=None):
+        """
+        Used to provide the pre-calculated acceleration to the RV.
+        Just to make it compatible with the rest of the system.
+        Although the acceleration `accel` is provided, it is not used.
+        The acceleration is gotten from the imitation model. 
+        """
+        if env is not None:
+            imitation_accel = self.get_imitation_accel(env)
+            self.shock_acceleration = imitation_accel
+        else: 
+            print("\nError: Environment not provided to the imitation model\n")
+        
+
+    def set_shock_time(self, shock_time):
+        """
+        If we follow model 2: i.e., provide imitation model shocks on pre-calculated shock times.
+        """
+        self.shock_time = shock_time
+
+    def get_shock_time(self):
+        """
+        This is not even used.
+        """
+        return self.shock_time
+
+    
+    def get_imitation_accel(self, env):
+        """
+        Takes 3 inputs in this order 'headway', 'ego_velocity', 'leader_velocity'
+        Make inference on the model and return the acceleration
+
+        One single acceleration is gotten every timestep during the shock duration.
+        """
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+
+        # Get the inputs
+        headway = env.k.vehicle.get_headway(self.veh_id)
+        ego_vel = env.k.vehicle.get_speed(self.veh_id)
+        
+        # In the ring at-least there will always be a leader
+        if lead_id is None or lead_id == '':  # no car ahead
+            lead_vel = 0
+        else:
+            lead_vel = env.k.vehicle.get_speed(lead_id)
+        print(f"Lead id: {lead_id}, Headway: {headway}, Vel: {lead_vel}; ego Vel: {ego_vel}")
+
+        # Normalize the inputs (normalizers similar to training)
+        max_vel = 70
+        max_headway = 150
+        
+        headway = headway / max_headway
+        ego_vel = ego_vel / max_vel
+        lead_vel = lead_vel / max_vel
+
+        # Pass the inputs to the model
+        inputs = torch.tensor([headway, ego_vel, lead_vel], dtype=torch.float32)
+        imitation_accel = self.imitation_model(inputs).item()
+        print(f"Imitation Acceleration: {imitation_accel}\n")
+        
+
+        # Decide based on headway of the ego vehicle which acceleration to return (sampled vs imitation)
+
+
+        
+        # Add some stochasticity to the imitation actions but keep within the range
+        # First sample acceeration uniformly outside the nominal [-1, 1] range
+        imitation_accel = np.clip(imitation_accel + np.random.uniform(-3, 3), -3, 3)
+
+        return imitation_accel
+
+    def get_accel(self, env):
+        """
+        Following the model 2: manual implementation of the vehicle switch instead of TRACI
+        """
+        # If the vehicle is a registered shock vehicle and shock model says shock now
+        if self.shock_vehicle and self.shock_time:
+            return self.get_shock_accel()
+        else: 
+            return self.get_idm_accel(env)
+
+
+
 class TrainedAgentController(BaseController):
     """
     For efficiency leader, the action space also need free flow estimation and action =0.0 at speed greater than that.
@@ -335,99 +546,3 @@ class TrainedAgentController(BaseController):
         else: 
             return self.get_trained_accel(env)
         
-
-class ImitationLearningController(BaseController):
-    """
-    
-    """
-    def __init__(self,
-                 veh_id,
-                 trigger_steps, # The timesteps at which this model should behave like imitation HVs from data
-                 v0=30,
-                 T=1,
-                 a=1,
-                 b=1.5,
-                 delta=4,
-                 s0=2,
-                 car_following_params=None,): 
-        
-        BaseController.__init__(
-            self,
-            veh_id,
-            car_following_params)
-        
-        self.veh_id = veh_id
-
-        self.v0 = v0
-        self.T = T
-        self.a = a
-        self.b = b
-        self.delta = delta
-        self.s0 = s0
-        self.TRIGGER_STEPS = trigger_steps
-        self.decision_model = self.load_imitation_model()
-
-    def load_imitation_model(self, ):
-        """
-        Load the Imitation Learning Model
-        """
-        class ImitationNet(nn.Module):
-            def __init__(self,):
-                super(ImitationNet, self).__init__()
-                self.layer1 = nn.Linear(3, 16)
-                self.layer2 = nn.Linear(16, 8)
-                self.layer3 = nn.Linear(8, 1)
-                #self.relu = nn.ReLU() # ReLU is fine for hidden layers
-                self.tanh = nn.Tanh()
-                
-            def forward(self, x):
-                out = self.layer1(x)
-                out = self.tanh(out)
-                out = self.layer2(out)
-                out = self.tanh(out)
-                out = self.layer3(out) # Last layer, no activation
-                return out
-            
-        url = "https://huggingface.co/matrix-multiply/Imitation_Learning/resolve/main/imitation_best_model.pth"
-
-        imitation_net = ImitationNet()
-        state_dict = torch.hub.load_state_dict_from_url(url)
-        imitation_net.load_state_dict(state_dict)
-        imitation_net.eval()
-        return imitation_net
-    
-    def get_idm_accel(self, env):
-        v = env.k.vehicle.get_speed(self.veh_id)
-        lead_id = env.k.vehicle.get_leader(self.veh_id)
-        h = env.k.vehicle.get_headway(self.veh_id)
-
-        # in order to deal with ZeroDivisionError
-        if abs(h) < 1e-3:
-            h = 1e-3
-
-        if lead_id is None or lead_id == '':  # no car ahead
-            s_star = 0
-        else:
-            lead_vel = env.k.vehicle.get_speed(lead_id)
-            s_star = self.s0 + max(
-                0, v * self.T + v * (v - lead_vel) /
-                (2 * np.sqrt(self.a * self.b)))
-
-        #print("IDM")
-        return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2) 
-
-    def get_imitation_accel(self, env):
-        """
-        Takes 3 inputs in this order 'headway', 'ego_velocity', 'leader_velocity'
-        """
-        
-        pass 
-    
-    def get_accel(self, env):
-        """
-        Add stochasticity to the imitation actions
-        """
-        if env.step_counter < self.TRIGGER_STEPS:
-            return self.get_idm_accel(env)
-        else: 
-            return self.get_imitation_accel(env)

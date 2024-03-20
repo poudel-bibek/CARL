@@ -16,7 +16,7 @@ import os
 from flow.networks.ring import RingNetwork
 from flow.core.params import VehicleParams, SumoCarFollowingParams
 from flow.controllers import IDMController
-from flow.controllers.controllers_for_daware import ModifiedIDMController
+from flow.controllers.controllers_for_daware import ModifiedIDMController, ImitationLearningController
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.envs.ring.density_aware_classic_env import classicEnv
@@ -51,7 +51,7 @@ def config_bcm(args, **kwargs):
     # Set BCM controllers default as IDM, 
     vehicles.add(
         veh_id="human",
-        acceleration_controller=(ModifiedIDMController, {
+        acceleration_controller=(ImitationLearningController, {
             "shock_vehicle": True, # Just because it was initialized as a shock vehicle does not mean it will shock
             "noise": args.noise ,
         }),
@@ -65,7 +65,7 @@ def config_bcm(args, **kwargs):
 
     vehicles.add(
         veh_id=kwargs['method_name'],
-         acceleration_controller=(ModifiedIDMController, {
+         acceleration_controller=(ModifiedIDMController, { # They change to respecfive controller (eg. BCM) after warmup time. Before that behave like IDM
             "noise": args.noise, 
         }),
         car_following_params=SumoCarFollowingParams(
