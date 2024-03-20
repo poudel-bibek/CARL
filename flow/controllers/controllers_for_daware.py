@@ -190,7 +190,7 @@ class ImitationLearningController(BaseController):
                 out = self.fc4(out) # Last layer, no activation
                 return out
         
-        url = "https://huggingface.co/matrix-multiply/Imitation_EnduRL/resolve/main/imitation_best_model.pth?download=true"
+        url = "https://huggingface.co/matrix-multiply/Imitation_Learning_EnduRL/resolve/main/imitation_best_model.pth?download=true"
         saved_best_net = NeuralNet()
         state_dict = torch.hub.load_state_dict_from_url(url)
         saved_best_net.load_state_dict(state_dict)
@@ -292,7 +292,7 @@ class ImitationLearningController(BaseController):
         # Decide based on headway of the ego vehicle which acceleration to return (sampled vs imitation)
 
 
-        
+
         # Add some stochasticity to the imitation actions but keep within the range
         # First sample acceeration uniformly outside the nominal [-1, 1] range
         imitation_accel = np.clip(imitation_accel + np.random.uniform(-3, 3), -3, 3)
