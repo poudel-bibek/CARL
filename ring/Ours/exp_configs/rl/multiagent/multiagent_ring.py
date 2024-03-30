@@ -37,32 +37,13 @@ for i in range(NUM_AUTOMATED):
 # Add the trained leader. These must point to correct leader at both train and test times
 # A correct copy of the exp_configs must be present in the same folder as test_rllib.py
 ########## FOR SAFETY + STABILITY ##########
-vehicles.add(
-    veh_id="rl_leader",
-    acceleration_controller=(TrainedAgentController, {
-                                                    "local_zone" : 50.0,
-                                                    "directory" : "/mnt/c/Users/09_gi/Desktop/Beyond-Simulated-Drivers/ring/Ours/Trained_policies/5_percent/", 
-                                                    "policy_name" : "PPO_DensityAwareRLEnv-v0_5dfded14_2024-02-07_09-58-351869u4p3", 
-                                                    "checkpoint_num" : "168",
-                                                    "num_cpus" : 5, # 1 greater than N_CPUS above
-                                                    "warmup_steps" : WARMUP_STEPS,
-                 }),
-
-    car_following_params=SumoCarFollowingParams(
-        min_gap=0.1 # Collisions are allowed at 0
-    ),
-    routing_controller=(ContinuousRouter, {}),
-    num_vehicles=1,
-    color='red')
-
-########## FOR EFFICIENCY ##########
 # vehicles.add(
 #     veh_id="rl_leader",
 #     acceleration_controller=(TrainedAgentController, {
-#                                                     "local_zone" : 50.0,
-#                                                     "directory" : "/mnt/c/Users/09_gi/Desktop/Beyond-Simulated-Drivers/ring/Ours/Trained_policies/5_percent/", 
-#                                                     "policy_name" : "PPO_DensityAwareRLEnv-v0_6106dcf6_2024-02-08_12-42-07_7vnf1n4", 
-#                                                     "checkpoint_num" : "200",
+#                                                     "local_zone" : 55.0, # For imitation learning paper, this is set to 55m
+#                                                     "directory" : "/mnt/c/Users/09_gi/Desktop/Imitation_Congestion/ring/Ours/Trained_policies/5_percent/", 
+#                                                     "policy_name" : "PPO_DensityAwareRLEnv-v0_5dfded14_2024-02-07_09-58-351869u4p3", 
+#                                                     "checkpoint_num" : "168",
 #                                                     "num_cpus" : 5, # 1 greater than N_CPUS above
 #                                                     "warmup_steps" : WARMUP_STEPS,
 #                  }),
@@ -73,6 +54,25 @@ vehicles.add(
 #     routing_controller=(ContinuousRouter, {}),
 #     num_vehicles=1,
 #     color='red')
+
+########## FOR EFFICIENCY ##########
+vehicles.add(
+    veh_id="rl_leader",
+    acceleration_controller=(TrainedAgentController, {
+                                                    "local_zone" : 50.0,
+                                                    "directory" : "/mnt/c/Users/09_gi/Desktop/Imitation_Congestion/ring/Ours/Trained_policies/5_percent/", 
+                                                    "policy_name" : "PPO_DensityAwareRLEnv-v0_6106dcf6_2024-02-08_12-42-07_7vnf1n4", 
+                                                    "checkpoint_num" : "200",
+                                                    "num_cpus" : 5, # 1 greater than N_CPUS above
+                                                    "warmup_steps" : WARMUP_STEPS,
+                 }),
+
+    car_following_params=SumoCarFollowingParams(
+        min_gap=0.1 # Collisions are allowed at 0
+    ),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=1,
+    color='red')
 
 # Bibek: Originally this is added in a way to not make a platoon i.e., distributed configuration
 vehicles.add(

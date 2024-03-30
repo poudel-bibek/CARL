@@ -6,18 +6,7 @@
   <i>Our RVs in the Ring</i>
 </p>
 
-Paper in: [arXiv](https://arxiv.org/abs/2311.12261)
-
-### Appendix section ([appendix.pdf](https://github.com/poudel-bibek/EnduRL/blob/2f07b1e3acc5162c0551c9f194ad3c86bfb55e58/appendix.pdf) file)
-
-```
-  I. Car Following Filter
-  II. Model Based Robot Vehicles
-  III. Heuristic Based Robot Vehicles
-  IV. Reinforcement Learning (RL) Benchmarks
-  V. Congestion Stage Classifier
-
-```
+Paper in: [arXiv]()
 
 ------
 This work was done on top of [FLOW](https://github.com/flow-project/flow) framework obtained on Jan 3, 2023.
@@ -40,12 +29,12 @@ pip install -r requirements.txt
 ```
 
 ### Part 1: Training the Congestion Stage Classifier
-- Follow the Notebooks: [Ring](https://github.com/poudel-bibek/EnduRL/blob/2f07b1e3acc5162c0551c9f194ad3c86bfb55e58/ring/Ours/CSC_training_ring.ipynb), [Bottleneck](https://github.com/poudel-bibek/EnduRL/blob/2f07b1e3acc5162c0551c9f194ad3c86bfb55e58/bottleneck/Ours/CSC_training_bottleneck.ipynb)
+- Follow the Notebooks: [Ring](https://github.com/poudel-bibek/Imitation_Congestion/blob/master/ring/Ours/CSC_training_ring.ipynb)
 
 If you want to use the trained CSCs, see `Data` section below. 
 
 ### Part 2: Training RL based RVs
-Go to the respective folders for the environment `ring/Ours` or `bottleneck/Ours` and enter the command:
+Go to the folder for the environment `ring/Ours` and enter the command:
 
 ```
 # Train our policy in Ring (at 5% penetration) 
@@ -54,18 +43,9 @@ python train.py singleagent_ring
 # Train our policy in Ring (at penetrations >5%)
 python train.py multiagent_ring
 
-# Train our policy in Bottleneck (for all penetrations)
-python train.py multiagent_bottleneck
-```
-Make sure to change the exp_config files accordingly to specify the RV penetration rate and `Safety + Stability` or `Efficiency` mode.
-
-To view tensorboard while training: 
-```
-tensorboard --logdir=~/ray_results/
-```
 
 ### Part 3: Generate rollouts for RL based RVs or Heuristic and Model based RVs and save as csv files.
-All scripts related to this part are consolidated [Evaluate Ring](https://github.com/poudel-bibek/EnduRL/blob/c52adc2286ea0a2d98095315d27eb314b74bc746/ring/Evaluate%20Ring.ipynb) and [Evaluate Bottleneck](https://github.com/poudel-bibek/EnduRL/blob/c52adc2286ea0a2d98095315d27eb314b74bc746/bottleneck/Evaluate%20Bottleneck.ipynb) Jupyter Notebooks. 
+All scripts related to this part are consolidated [Evaluate Ring](https://github.com/poudel-bibek/Imitation_Congestion/blob/master/ring/Evaluate%20Ring.ipynb) Jupyter Notebook. 
 
 #### I. RL based RVs:
 

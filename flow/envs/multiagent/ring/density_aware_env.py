@@ -32,7 +32,7 @@ class MultiAgentDensityAwareRLEnv(MultiEnv):
 
         super().__init__(env_params, sim_params, network, simulator)
 
-        self.LOCAL_ZONE = 50 # m, arbitrarily set
+        self.LOCAL_ZONE = 55 # m, arbitrarily set
         self.VEHICLE_LENGTH = 5 #m can use self.k.vehicle.get_length(veh_id)
         self.MAX_SPEED = 10 # m/s
         self.estimated_free_speed = 0
@@ -70,8 +70,8 @@ class MultiAgentDensityAwareRLEnv(MultiEnv):
 
             ##############
             # For Safety + Stability. Only present in test time. In multi agents, for followers.
-            if self.k.vehicle.get_speed(rl_id) >= 0.98*self.estimated_free_speed: # 0.98 for 20%, 0.95 for 40%, 0.90 for 60%
-                rl_action = 0.0
+            # if self.k.vehicle.get_speed(rl_id) >= 0.90*self.estimated_free_speed: # 0.95 for 20%, 0.95 for 40%, 0.90 for 60%
+            #     rl_action = 0.0
 
             self.k.vehicle.apply_acceleration(rl_id, rl_action)
 
@@ -123,7 +123,6 @@ class MultiAgentDensityAwareRLEnv(MultiEnv):
                 #print(f"Reward: {reward_val} \n")
 
                 rew[rl_id] = reward_val #
-                
                 
             #print(f"Rewards: {rew} \n")
             return rew

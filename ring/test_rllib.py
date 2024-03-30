@@ -50,6 +50,8 @@ Here the arguments are:
 2 - the number of the checkpoint
 """
 
+# Changed ModifiedIDMController to ImitationLearningController
+
 #### Required for multiagent because it cant find the exp configs ####
 #Just copy and paste the exp_configs folder outside to where test_rllib.py is located
 #### ####
@@ -96,7 +98,7 @@ def visualizer_rllib(args):
                 # So HV indices are 1, 3, 5, 7
                 human_indices = [1, 3, 5, 7]
                 for index in human_indices:
-                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ModifiedIDMController", {"noise": args.noise,
+                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ImitationLearningController", {"noise": args.noise,
                                                                                                     "shock_vehicle": True}]
                 
                     flow_params_modify["veh"][index]["car_following_params"]["controller_params"]["minGap"] = args.min_gap
@@ -105,7 +107,7 @@ def visualizer_rllib(args):
                 # In 40%, 1 RL, 1 HV, 1 RL, 2 HV, 1 RL, 1 HV, 1 RL, 2 HV, 1 RL, 1 HV, 1 RL, 2 HV, 1 RL, 1 HV, 1 RL, 2 HV, 1 RL, 1 HV
                 human_indices = [1, 3, 5, 7, 9, 11, 13, 15, 17]
                 for index in human_indices:
-                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ModifiedIDMController", {"noise": args.noise,
+                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ImitationLearningController", {"noise": args.noise,
                                                                                                     "shock_vehicle": True}]
                 
                     flow_params_modify["veh"][index]["car_following_params"]["controller_params"]["minGap"] = args.min_gap
@@ -114,7 +116,7 @@ def visualizer_rllib(args):
             #     # In 60% , 5 x (1 RL, 1 HV) then 4 x (2 RL, 1 HV) makes total 22 
                 human_indices = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25] # Although only 9 HVs make it to the scene.
                 for index in human_indices:
-                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ModifiedIDMController", {"noise": args.noise,
+                    flow_params_modify["veh"][index]["acceleration_controller"] = ["ImitationLearningController", {"noise": args.noise,
                                                                                                     "shock_vehicle": True}]
                 
                     flow_params_modify["veh"][index]["car_following_params"]["controller_params"]["minGap"] = args.min_gap
@@ -128,7 +130,7 @@ def visualizer_rllib(args):
             human_index = args.num_controlled # This is the index within "veh"
 
             # Since we need to shock, they need to be of this type.
-            flow_params_modify["veh"][human_index]["acceleration_controller"] = ["ModifiedIDMController", {"noise": args.noise,
+            flow_params_modify["veh"][human_index]["acceleration_controller"] = ["ImitationLearningController", {"noise": args.noise,
                                                                                                 "shock_vehicle": True}]
             
             flow_params_modify["veh"][human_index]["car_following_params"]["controller_params"]["minGap"] = args.min_gap
@@ -139,7 +141,7 @@ def visualizer_rllib(args):
     else: 
         # 2. Be able to set shock vehicles (set the IDM vehicles to ModifiedIDM)
         # "veh" is a list with the first element as humans. Right now all humans are shock vehicles, modify for stability tests
-        flow_params_modify["veh"][0]["acceleration_controller"] = ["ModifiedIDMController", {"noise": args.noise, # Just need to specify as string
+        flow_params_modify["veh"][0]["acceleration_controller"] = ["ImitationLearningController", {"noise": args.noise, # Just need to specify as string
                                                                                             "shock_vehicle": True}] 
         # 2.1 modify the mingap for human vehicles (only at test time)
         flow_params_modify["veh"][0]["car_following_params"]["controller_params"]["minGap"] = args.min_gap
@@ -465,7 +467,7 @@ def perform_shock(env, vehicles, single_shock_id, shock_times, shock_counter, cu
             print(f"Step = {step}, Shock params: {intensities[shock_counter]}, {durations[shock_counter]}, {frequency} applied to vehicle {single_shock_id}\n")
             
             controller.set_shock_time(True) 
-            controller.set_shock_accel(intensities[shock_counter])
+            controller.set_shock_accel(intensities[shock_counter], env)
 
             # change color to magenta (exclude the observed vehicles?)
             env.unwrapped.k.vehicle.set_color(single_shock_id, (255, 0, 255))

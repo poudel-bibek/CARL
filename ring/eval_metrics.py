@@ -166,6 +166,7 @@ class EvalMetrics():
                         relative_velocities = leader_velocities - vehicle_velocities 
 
                         # set positive values to 0
+                        #print(relative_velocities)
                         #relative_velocities[relative_velocities > 0] = 0.01 # to avoid division by 0
                         #print(relative_velocities.shape, relative_velocities)
 
@@ -641,8 +642,8 @@ class EvalMetrics():
 
             #print(f"Speed of all vehicles (m/s): {speeds_total_avg.shape}\n")
             #print(f"Std of average speeds{speeds_total_std}")
-            
-            if args.method == 'fs': # For unstable percentages put names here. ;bcm
+            # local variable 'tts' referenced before assignment
+            if args.method == 'pi': # For unstable percentages put names here. ;bcm
                 tts = -1
             else: 
                 # Where was the first instance of the std being less than the IDM noise?

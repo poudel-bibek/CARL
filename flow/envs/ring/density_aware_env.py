@@ -44,8 +44,10 @@ class DensityAwareRLEnv(Env):
 
         super().__init__(env_params, sim_params, network, simulator)
 
-        
-        self.LOCAL_ZONE = 35 # 50 #m, arbitrarily set
+        # For visualizations may have set to 35m in certain experiments
+        # Set to 55m in safety and stability experiments
+        # Set to 50m in efficiency experiments
+        self.LOCAL_ZONE = 50
         self.VEHICLE_LENGTH = 5 #m can use self.k.vehicle.get_length(veh_id)
         self.MAX_SPEED = 10 # m/s
         self.velocity_track = []
@@ -98,10 +100,10 @@ class DensityAwareRLEnv(Env):
         ##############
         # For Efficiency (Fuel and Throughput). Only present in test time. For multi-agents, even for the trained agent's zero acceleration behavior, change in controllersforaware (Not from here)
         # For the first 300 steps after warmup, estimate the free flow speed in the local zone (Leverage CSC)
-        # if speed is greater than desired speed, then just maintain the speed
-        # rl_speed = self.k.vehicle.get_speed(self.k.vehicle.get_rl_ids()[0])
-        # if self.estimated_free_speed!=0 and rl_speed >= self.estimated_free_speed:
-        #     rl_actions = [0.0]
+        # # if speed is greater than desired speed, then just maintain the speed
+        rl_speed = self.k.vehicle.get_speed(self.k.vehicle.get_rl_ids()[0])
+        if self.estimated_free_speed!=0 and rl_speed >= self.estimated_free_speed:
+            rl_actions = [0.0]
         
         #print(f"RL action received: {rl_actions}")
             
@@ -434,7 +436,7 @@ class DensityAwareRLEnv(Env):
         if (self.step_counter > self.env_params.warmup_steps and self.step_counter < self.env_params.warmup_steps + 300):
             # csc output is free flow
             if self.csc_output[0] == 2:
-                estimate = 0.70*np.mean([self.k.vehicle.get_speed(veh_id) for veh_id in sorted_veh_ids])
+                estimate = 0.80*np.mean([self.k.vehicle.get_speed(veh_id) for veh_id in sorted_veh_ids]) # For Imitation, at 5% set to 0.80
                 if estimate > self.estimated_free_speed:
                     self.estimated_free_speed = estimate
         

@@ -166,7 +166,7 @@ class ImitationLearningController(BaseController):
             def __init__(self, dropout_rate=0.15): # dropour probability 15%
                 super(NeuralNet, self).__init__() 
                 self.fc1 = nn.Linear(3, 32)
-                self.relu = nn.ReLU()
+                self.tanh = nn.Tanh()
                 # Adding dropout after the first ReLU
                 self.dropout1 = nn.Dropout(dropout_rate)
                 self.fc2 = nn.Linear(32, 16)
@@ -178,19 +178,19 @@ class ImitationLearningController(BaseController):
 
             def forward(self, x):
                 out = self.fc1(x)
-                out = self.relu(out)
+                out = self.tanh(out)
                 # out = self.dropout1(out) # Dropouts turned OFF at eval
                 
                 out = self.fc2(out)
-                out = self.relu(out)
+                out = self.tanh(out)
                 # out = self.dropout2(out) # Dropouts turned OFF at eval
                 
                 out = self.fc3(out) 
-                out = self.relu(out)
+                out = self.tanh(out)
                 out = self.fc4(out) # Last layer, no activation
                 return out
         
-        url = "https://huggingface.co/matrix-multiply/Imitation_Learning_EnduRL/resolve/main/imitation_best_model.pth?download=true"
+        url = "https://huggingface.co/matrix-multiply/EnduRL_Imitation_Learning/resolve/main/imitation_best_model.pth?download=true"
         saved_best_net = NeuralNet()
         state_dict = torch.hub.load_state_dict_from_url(url)
         saved_best_net.load_state_dict(state_dict)
@@ -230,13 +230,13 @@ class ImitationLearningController(BaseController):
 
     def set_shock_accel(self, accel, env=None):
         """
-        Used to provide the pre-calculated acceleration to the RV.
+        Used to provide the acceleration to the HV.
         Just to make it compatible with the rest of the system.
-        Although the acceleration `accel` is provided, it is not used.
+        The acceleration `accel` which is sampled from the distribution is also provided.
         The acceleration is gotten from the imitation model. 
         """
         if env is not None:
-            imitation_accel = self.get_imitation_accel(env)
+            imitation_accel = self.get_imitation_accel(env, accel)
             self.shock_acceleration = imitation_accel
         else: 
             print("\nError: Environment not provided to the imitation model\n")
@@ -255,7 +255,7 @@ class ImitationLearningController(BaseController):
         return self.shock_time
 
     
-    def get_imitation_accel(self, env):
+    def get_imitation_accel(self, env, sampled_accel):
         """
         Takes 3 inputs in this order 'headway', 'ego_velocity', 'leader_velocity'
         Make inference on the model and return the acceleration
@@ -266,38 +266,38 @@ class ImitationLearningController(BaseController):
 
         # Get the inputs
         headway = env.k.vehicle.get_headway(self.veh_id)
-        ego_vel = env.k.vehicle.get_speed(self.veh_id)
         
-        # In the ring at-least there will always be a leader
-        if lead_id is None or lead_id == '':  # no car ahead
-            lead_vel = 0
-        else:
-            lead_vel = env.k.vehicle.get_speed(lead_id)
-        print(f"Lead id: {lead_id}, Headway: {headway}, Vel: {lead_vel}; ego Vel: {ego_vel}")
-
-        # Normalize the inputs (normalizers similar to training)
-        max_vel = 70
-        max_headway = 150
-        
-        headway = headway / max_headway
-        ego_vel = ego_vel / max_vel
-        lead_vel = lead_vel / max_vel
-
-        # Pass the inputs to the model
-        inputs = torch.tensor([headway, ego_vel, lead_vel], dtype=torch.float32)
-        imitation_accel = self.imitation_model(inputs).item()
-        print(f"Imitation Acceleration: {imitation_accel}\n")
-        
-
         # Decide based on headway of the ego vehicle which acceleration to return (sampled vs imitation)
+        # If headway >5m, return the sampled acceleration
+        if headway > 5:
+            return sampled_accel
+            print(f"Sampled Acceleration: {sampled_accel}\n")
+        # If headway <5m, return the imitation acceleration
+        else: 
+            ego_vel = env.k.vehicle.get_speed(self.veh_id)
+            
+            # In the ring at-least there will always be a leader
+            if lead_id is None or lead_id == '':  # no car ahead
+                lead_vel = 0
+            else:
+                lead_vel = env.k.vehicle.get_speed(lead_id)
+            print(f"Lead id: {lead_id}, Headway: {headway}, Vel: {lead_vel}; ego Vel: {ego_vel}")
 
+            # Normalize the inputs (normalizers similar to training)
+            max_vel = 70
+            max_headway = 150
+            
+            headway = headway / max_headway
+            ego_vel = ego_vel / max_vel
+            lead_vel = lead_vel / max_vel
 
-
-        # Add some stochasticity to the imitation actions but keep within the range
-        # First sample acceeration uniformly outside the nominal [-1, 1] range
-        imitation_accel = np.clip(imitation_accel + np.random.uniform(-3, 3), -3, 3)
-
-        return imitation_accel
+            # Pass the inputs to the model
+            inputs = torch.tensor([headway, ego_vel, lead_vel], dtype=torch.float32)
+            imitation_accel = self.imitation_model(inputs).item()
+            print(f"Imitation Acceleration: {imitation_accel}\n")
+            # imitation_accel = np.clip(imitation_accel + np.random.uniform(-3, 3), -3, 3)
+        
+            return imitation_accel
 
     def get_accel(self, env):
         """
@@ -324,7 +324,7 @@ class TrainedAgentController(BaseController):
                  checkpoint_num,
                  num_cpus, # Make the num cpu here one more than the one in training config file for the single agent
                  warmup_steps,
-                 efficiency = False, # For efficiency leader. Only at test time.
+                 efficiency = True, # For efficiency leader. Only at test time.
                  v0=30,
                  T=1,
                  a=1,
@@ -347,9 +347,11 @@ class TrainedAgentController(BaseController):
         self.delta = delta
         self.s0 = s0
         self.WARMUP_STEPS = warmup_steps
-        self.LOCAL_ZONE = local_zone
+        self.LOCAL_ZONE = 55 #local_zone
         self.MAX_SPEED = 10.0
-        self.directory = directory
+        #self.directory = directory
+        self.directory = "/mnt/c/Users/09_gi/Desktop/Imitation_Congestion/ring/Ours/Trained_policies/5_percent/" #directory
+        print(f"\nDirectory: {self.directory}\n")
         self.policy_name = policy_name
         self.checkpoint_num = checkpoint_num
         self.num_cpus = num_cpus
@@ -377,11 +379,11 @@ class TrainedAgentController(BaseController):
 
         result_dir_name = self.directory + self.policy_name
         ray.init(num_cpus=self.num_cpus, ignore_reinit_error=True)
-
+        #print("\nI am here\n")
         result_dir = result_dir_name if result_dir_name[-1] != '/' else result_dir_name[:-1]
         checkpoint = result_dir + '/checkpoint_' + self.checkpoint_num
         checkpoint = checkpoint + '/checkpoint-' + self.checkpoint_num
-
+        print(f"\nCheckpoint: {checkpoint}\n")
         config = get_rllib_config(result_dir)
         config['num_workers'] = 0
 
