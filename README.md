@@ -1,4 +1,4 @@
-## EnduRL: Enhancing Safety, Stability, and Efficiency of Mixed Traffic Under Real-World Perturbations Via Reinforcement Learning
+## CARL: Congestion-Aware Reinforcement Learning for Imitation-based Perturbations in Mixed Traffic Contro
 
 <p align="center">
   <img src="https://github.com/poudel-bibek/EnduRL/blob/5241e6f905b16dcb43df86fbb328b52c64050550/ring/ring_banner.gif" alt="Alt Text">
@@ -90,11 +90,12 @@ python eval_plots.py --method [method_name]
 -------
 ### Cite
 
+
 ```
 
 @article{poudel2024endurl,
-  title={EnduRL: Enhancing Safety, Stability, and Efficiency of Mixed Traffic Under Real-World Perturbations Via Reinforcement Learning},
-  author={Poudel, Bibek and Li, Weizi and Heaslip, Kevin},
+  title={},
+  author={Poudel, Bibek and Li, Weizi and Li, Suhai},
   journal={arXiv preprint arXiv:2311.12261},
   year={2024}
 }
