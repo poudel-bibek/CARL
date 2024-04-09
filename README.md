@@ -6,7 +6,7 @@
   <i>Our RVs in the Ring</i>
 </p>
 
-Paper in: [arXiv]()
+Paper in: [arXiv](https://arxiv.org/abs/2404.00796v1)
 
 ------
 This work was done on top of [FLOW](https://github.com/flow-project/flow) framework obtained on Jan 3, 2023.
