@@ -1,4 +1,4 @@
-## CARL: Congestion-Aware Reinforcement Learning for Imitation-based Perturbations in Mixed Traffic Contro
+## CARL: Congestion-Aware Reinforcement Learning for Imitation-based Perturbations in Mixed Traffic Control
 
 <p align="center">
   <img src="https://github.com/poudel-bibek/EnduRL/blob/5241e6f905b16dcb43df86fbb328b52c64050550/ring/ring_banner.gif" alt="Alt Text">
@@ -94,7 +94,7 @@ python eval_plots.py --method [method_name]
 ```
 
 @article{poudel2024endurl,
-  title={},
+  title={CARL: Congestion-Aware Reinforcement Learning for Imitation-based Perturbations in Mixed Traffic Control},
   author={Poudel, Bibek and Li, Weizi and Li, Suhai},
   journal={arXiv preprint arXiv:2311.12261},
   year={2024}
