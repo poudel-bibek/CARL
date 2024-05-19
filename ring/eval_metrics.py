@@ -805,5 +805,5 @@ if __name__ == '__main__':
     print("\nFinal Aggregated Stability Metrics (across all files):\n")
     print(f"Time to stabilize (s), (time elapsed after warmup ends): {tts_mother} \n\tAvg= {round(tts_avg,2)}, std= {round(tts_std,2)}\n")
 
-    print(f"${-1*a}~\pm~{b}$ & ${x}~\pm~{y}$ & ${e}~\pm~{f}$ & ${int(g)}~\pm~{h}$")
+    print(f"${-1*a}\\thinspace\pm\\thinspace{b}$ & ${x}\\thinspace\pm\\thinspace{y}$ & ${e}\\thinspace\pm\\thinspace{f}$ & ${int(g)}\\thinspace\pm\\thinspace{h}$")
     # TODO: Controlled vehicles and human vehicle have separate stats?
