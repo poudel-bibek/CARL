@@ -99,7 +99,7 @@ python eval_plots.py --method [method_name]
 
 - Trained CSC Models: [HuggingFace](https://huggingface.co/matrix-multiply/Congestion_Stage_Classifier/tree/main)
 
-- Experiment Data (including rollouts and data for plots): [HuggingFace](https://huggingface.co/datasets/matrix-multiply/CARL/tree/mainL)
+- Experiment Data (including rollouts and data for plots): [HuggingFace](https://huggingface.co/datasets/matrix-multiply/CARL/tree/main)
 
 ---
 ### Cite
