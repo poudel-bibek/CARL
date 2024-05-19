@@ -76,8 +76,7 @@ For stability tests where a standard perturbation is applied by a leading HV, in
 ---
 ### Part 5: Evaluate the generated rollouts
 
-To evaluate the generated rollouts into Safety, Efficiency and Stability metrics:
-Replace the method name to be one of: bcm, idm, fs, piws, lacc, wu, ours
+To evaluate the generated rollouts into Safety and Efficiency metrics, replace the method name to be one of: `idm`, `bcm`, `fs`, `piws`, `lacc`, `wu`, `ours`.
 
 ```
 python eval_metrics.py --method [method_name] --num_rollouts [no_of_rollouts]
