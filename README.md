@@ -26,9 +26,10 @@ python setup.py develop
 pip install -U pip setuptools
 pip install -r requirements.txt
 ```
-### Part 1: Training the Imitation Learning model from I24 Motion dataset
-  - Follow the Notebook [Imitation Learning](https://github.com/poudel-bibek/CARL/blob/master/imitation_learning/Imitation%20Learning-1.ipynb)
+### Part 1: Training the Imitation Learning model on I24 Motion dataset
   - For the data processing (car-following filter), follow the Notebooks: [Car-Following trajectory analysis](https://github.com/poudel-bibek/CARL/blob/master/car_following/Car-Following%20trajectory%20analysis.ipynb)
+  - Follow the Notebook [Imitation Learning](https://github.com/poudel-bibek/CARL/blob/master/imitation_learning/Imitation%20Learning-1.ipynb)
+  
 
 ### Part 2: Training the Congestion Stage Classifier
 
