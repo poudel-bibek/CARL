@@ -26,17 +26,20 @@ python setup.py develop
 pip install -U pip setuptools
 pip install -r requirements.txt
 ```
+---
 ### Part 1: Training the Imitation Learning model on I24 Motion dataset
   - For the data processing (car-following filter), follow the Notebooks: [Car-Following trajectory analysis](https://github.com/poudel-bibek/CARL/blob/master/car_following/Car-Following%20trajectory%20analysis.ipynb)
   - Follow the Notebook [Imitation Learning](https://github.com/poudel-bibek/CARL/blob/master/imitation_learning/Imitation%20Learning-1.ipynb)
   
 
+---
 ### Part 2: Training the Congestion Stage Classifier
 
 - Follow the Notebook [Ring](https://github.com/poudel-bibek/Imitation_Congestion/blob/master/ring/Ours/CSC_training_ring.ipynb)
 
 If you want to use the trained CSCs, see `Data` section below. 
 
+---
 ### Part 3: Training RL based RVs
 
 Go to the folder `ring/Ours` and enter the command:
@@ -49,6 +52,8 @@ python train.py singleagent_ring
 python train.py multiagent_ring
 
 ```
+
+---
 ### Part 4: Generate rollouts for RL based RVs or Heuristic and Model based RVs and save as csv files.
 All scripts related to this part are consolidated [Evaluate Ring](https://github.com/poudel-bibek/CARL/blob/master/ring/Evaluate%20Ring.ipynb) Jupyter Notebook. 
 
@@ -68,6 +73,7 @@ python classic.py --method [method_name] --render --length 260 --num_rollouts [n
 ```
 For stability tests where a standard perturbation is applied by a leading HV, include --stability to the line above
 
+---
 ### Part 5: Evaluate the generated rollouts
 
 To evaluate the generated rollouts into Safety, Efficiency and Stability metrics:
@@ -85,7 +91,7 @@ For Stability plots
 python eval_plots.py --method [method_name]
 ```
 
-
+---
 ### Data
 
 - Trained Policies (at all penetration rates):
@@ -96,8 +102,8 @@ python eval_plots.py --method [method_name]
 
 - Experiment Data (including rollouts and data for plots): [HuggingFace](https://huggingface.co/datasets/matrix-multiply/CARL)
 
+---
 ### Cite
-
 
 ```
 
