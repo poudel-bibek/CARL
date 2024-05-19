@@ -109,7 +109,7 @@ python eval_plots.py --method [method_name]
 @article{poudel2024carl,
   title={CARL: Congestion-Aware Reinforcement Learning for Imitation-based Perturbations in Mixed Traffic Control},
   author={Poudel, Bibek and Li, Weizi and Li, Suhai},
-  journal={arXiv preprint arXiv:2311.12261},
+  journal={arXiv preprint arXiv:2404.00796},
   year={2024}
 }
 
