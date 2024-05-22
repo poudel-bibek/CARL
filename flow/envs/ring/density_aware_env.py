@@ -434,12 +434,11 @@ class DensityAwareRLEnv(Env):
 
         # If time steps are less than warmup + 300 then estimate the free speed
         if (self.step_counter > self.env_params.warmup_steps and self.step_counter < self.env_params.warmup_steps + 300):
-            self.estimated_free_speed = 4.25
             # csc output is free flow
-            # if self.csc_output[0] == 2:
-            #     estimate = 0.60*np.mean([self.k.vehicle.get_speed(veh_id) for veh_id in sorted_veh_ids]) # For Imitation, at 5% set to 0.80
-            #     if estimate > self.estimated_free_speed:
-            #         self.estimated_free_speed = estimate
+            if self.csc_output[0] == 2:
+                estimate = 0.60*np.mean([self.k.vehicle.get_speed(veh_id) for veh_id in sorted_veh_ids]) # For Imitation, at 5% set to 0.80
+                if estimate > self.estimated_free_speed:
+                    self.estimated_free_speed = estimate
         
         #print(f"Estimated free speed: {self.estimated_free_speed}")
 
