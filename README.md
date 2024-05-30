@@ -2,7 +2,7 @@
 Paper accepted to IEEE CYBER 2024 ([ArXiV](https://arxiv.org/abs/2404.00796v1))
 
 <p align="center">
-  <img src="https://github.com/poudel-bibek/EnduRL/blob/5241e6f905b16dcb43df86fbb328b52c64050550/ring/ring_banner.gif" alt="Alt Text">
+  <img src="https://github.com/poudel-bibek/CARL/assets/96804013/b8713caf-bd04-4c62-87ff-398cdc6c9670" alt="Alt Text">
   <br>
   <i>Our RVs in the Ring</i>
 </p>
